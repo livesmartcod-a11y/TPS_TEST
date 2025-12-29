@@ -90,11 +90,11 @@ namespace StarterAssets
 		}
 			public void ShootInput(bool newShootState)
 		{
-			aim = newShootState;
+			shoot = newShootState;
 		}
 			public void ReroadInput(bool newReroadState)
 		{
-			aim = newReroadState;
+			reroad = newReroadState;
 		}
 
 		private void OnApplicationFocus(bool hasFocus)

@@ -46,55 +46,49 @@ public class PlayerManager : MonoBehaviour
 
     private void AimCheck()
     {
-        if (input.aim) // 조준할 때 (오른쪽 클릭)
+        Vector3 targetPosition;
+        Transform camTransform = Camera.main.transform;
+        RaycastHit hit;
+
+        if (Physics.Raycast(camTransform.position, camTransform.forward, out hit, Mathf.Infinity, targetLayer))
         {
-            AimControll(true);
+            // Debug.Log("Name : " + hit.transform.gameObject.name);
+            targetPosition = hit.point;
+            aimObj.transform.position = hit.point;
+        }
+        else
+        {
+            targetPosition = camTransform.position + camTransform.forward * aimObjDis;
+            aimObj.transform.position = camTransform.position + camTransform.forward * aimObjDis;
+        }
 
-            anim.SetLayerWeight(1,1); // 1번째 인자값: 몇 번째의 layer인가, 2번째 인자값: weight 값 설정 
+        // 조준 시에만 카메라와 조준점 UI 활성화
+        AimControll(input.aim);
 
-            Vector3 targetPosition = Vector3.zero;
-            Transform camTransform = Camera.main.transform;
-            RaycastHit hit;
-
-            if (Physics.Raycast(camTransform.position, camTransform.forward, out hit, Mathf.Infinity, targetLayer))
-            {
-                // Debug.Log("Name : " + hit.transform.gameObject.name);
-                targetPosition = hit.point;
-                aimObj.transform.position = hit.point;
-            }
-            else
-            {
-                targetPosition = camTransform.position + camTransform.forward * aimObjDis;
-                aimObj.transform.position = camTransform.position + camTransform.forward * aimObjDis;
-            }
-
-
+        // 조준 또는 발사 시 플레이어가 총구 방향을 보도록 회전하고, IK Rig와 애니메이션 레이어 활성화
+        if (input.aim || input.shoot)
+        {
             Vector3 targetAim = targetPosition;
             targetAim.y = transform.position.y;
             Vector3 aimDir = (targetAim - transform.position).normalized;
 
             transform.forward = Vector3.Lerp(transform.forward, aimDir, Time.deltaTime * 50f);
-
             SetRigWeight(1);
-
-
-            if (input.shoot)
-            {
-                anim.SetBool("Shoot", true);
-            }
-            else
-            {
-                anim.SetBool("Shoot", false);
-            }
-
-
+            anim.SetLayerWeight(1, 1);
+        }
+        else // 조준도 발사도 하지 않을 때
+        {
+            SetRigWeight(0);
+            anim.SetLayerWeight(1, 0);
         }
 
-        else // 오른쪽 클릭 (조준) X 
+        if (input.shoot)
         {
-            AimControll(false);
-            SetRigWeight(0);
-            anim.SetLayerWeight(1,0);
+            anim.SetBool("Shoot", true);
+            GameManager.instance.Shooting(targetPosition);
+        }
+        else
+        {
             anim.SetBool("Shoot", false);
         }
     }
