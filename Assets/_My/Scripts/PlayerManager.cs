@@ -30,12 +30,27 @@ public class PlayerManager : MonoBehaviour
     [SerializeField]
     private Rig aimRig;
 
+    [Header("Weapon Sound Effect")]
+    [SerializeField]
+    private AudioClip shootingSound;
+    [SerializeField]
+    private AudioClip[] reloadSound;
+    private AudioSource weaponSound;
+
+
+
+
+
+    private Enemy enemy;
+
+
 
     void Start()
     {
         input = GetComponent<StarterAssetsInputs>();
         controller = GetComponent<ThirdPersonController>();
         anim = GetComponent<Animator>();
+        weaponSound = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -55,11 +70,14 @@ public class PlayerManager : MonoBehaviour
             // Debug.Log("Name : " + hit.transform.gameObject.name);
             targetPosition = hit.point;
             aimObj.transform.position = hit.point;
+
+            enemy = hit.collider.gameObject.GetComponent<Enemy>();
         }
-        else
+        else 
         {
             targetPosition = camTransform.position + camTransform.forward * aimObjDis;
             aimObj.transform.position = camTransform.position + camTransform.forward * aimObjDis;
+            enemy = null;
         }
 
         // 조준 시에만 카메라와 조준점 UI 활성화
@@ -85,7 +103,7 @@ public class PlayerManager : MonoBehaviour
         if (input.shoot)
         {
             anim.SetBool("Shoot", true);
-            GameManager.instance.Shooting(targetPosition);
+            GameManager.instance.Shooting(targetPosition, enemy, weaponSound, shootingSound);
         }
         else
         {
@@ -102,12 +120,21 @@ public class PlayerManager : MonoBehaviour
 
     private void SetRigWeight(float weight)
     {
-        aimRig.weight = weight;
-        handRig.weight = weight;
-          if (aimRig != null) aimRig.weight = weight;
+        if (aimRig != null) aimRig.weight = weight;
         if (handRig != null) handRig.weight = weight;
     }
 
+    public void ReroadWeaponClip()
+    {
+        GameManager.instance.ReroadClip();
+        // PlayWeaponSound(reroadSound[0]);
+    }
+
+    private void PlayWeaponSound(AudioClip sound)
+    {
+        weaponSound.clip = sound;
+        weaponSound.Play();
+    }
 
 
 }
